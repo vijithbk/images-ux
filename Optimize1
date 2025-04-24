@@ -1,0 +1,47 @@
+function fetchData(url) {
+  fetch(url)
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(data) {
+      console.log('Data received:', data);
+      for (let i = 0; i < data.length; i++) {
+        console.log('Item:', data[i]);
+      }
+    })
+    .catch(function(error) {
+      console.log('Something went wrong:', error.message);
+    });
+}
+
+What can be improved:
+Use of modern async/await syntax.
+
+Better error handling.
+
+Avoid unnecessary loop for logging.
+
+Use forEach or functional methods instead of for loop.
+
+Parameter destructuring or response validation.
+
+Naming conventions and separation of concerns.
+
+async function fetchData(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Data received:', data);
+
+    data.forEach(item => {
+      console.log('Item:', item);
+    });
+
+  } catch (error) {
+    console.error('Failed to fetch data:', error.message);
+  }
+}
