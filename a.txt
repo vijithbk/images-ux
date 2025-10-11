@@ -1,14 +1,221 @@
-import React from 'react';
-import { Container, Typography, Paper } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Button,
+  Box,
+  TextField,
+  CircularProgress,
+  Alert,
+  Paper,
+  Stack,
+} from '@mui/material';
+import { fetchExperiments, runExperiment, fetchExperimentStatus } from '../services/api';
 
-export default function Dashboard() {
+const environments = ['Kubernetes', 'VM', 'Cloud Instance'];
+const frameworks = ['LitmusChaos', 'Chaos Monkey'];
+
+const initialParams = [
+  { key: 'namespace', label: 'Namespace' },
+  { key: 'nodeName', label: 'Node Name' },
+  { key: 'appLabel', label: 'App Label' },
+];
+
+const POLL_INTERVAL_MS = 5000;
+
+export default function NewExperiment() {
+  const [environment, setEnvironment] = useState('');
+  const [framework, setFramework] = useState('');
+  const [experiments, setExperiments] = useState([]);
+  const [selectedExperiment, setSelectedExperiment] = useState('');
+  const [parameters, setParameters] = useState({});
+  const [loadingExperiments, setLoadingExperiments] = useState(false);
+  const [experimentStatus, setExperimentStatus] = useState(null);
+  const [experimentId, setExperimentId] = useState(null);
+  const [verdict, setVerdict] = useState(null);
+  const [resilienceScore, setResilienceScore] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!framework) {
+      setExperiments([]);
+      setSelectedExperiment('');
+      return;
+    }
+    setLoadingExperiments(true);
+    setError(null);
+    fetchExperiments(framework)
+      .then((data) => {
+        setExperiments(data);
+        setSelectedExperiment('');
+      })
+      .catch(() => {
+        setError('Failed to fetch experiments.');
+        setExperiments([]);
+        setSelectedExperiment('');
+      })
+      .finally(() => {
+        setLoadingExperiments(false);
+      });
+  }, [framework]);
+
+  useEffect(() => {
+    if (!experimentId) return;
+    setExperimentStatus('Pending');
+    setError(null);
+
+    const fetchStatus = () => {
+      fetchExperimentStatus(experimentId)
+        .then((data) => {
+          setExperimentStatus(data.status);
+          setVerdict(data.verdict);
+          setResilienceScore(data.resilience_score);
+          if (data.status === 'Completed' || data.status === 'Failed') {
+            clearInterval(pollInterval);
+          }
+        })
+        .catch(() => {
+          setError('Failed to fetch experiment status.');
+          clearInterval(pollInterval);
+        });
+    };
+
+    fetchStatus();
+    const pollInterval = setInterval(fetchStatus, POLL_INTERVAL_MS);
+
+    return () => clearInterval(pollInterval);
+  }, [experimentId]);
+
+  const handleRunExperiment = () => {
+    setError(null);
+    if (!environment || !framework || !selectedExperiment) {
+      setError('Please select environment, framework, and experiment.');
+      return;
+    }
+    runExperiment({
+      environment,
+      framework,
+      experiment: selectedExperiment,
+      parameters,
+    })
+      .then((res) => {
+        setExperimentId(res.id);
+        setExperimentStatus('Running');
+        setVerdict(null);
+        setResilienceScore(null);
+      })
+      .catch(() => {
+        setError('Failed to start experiment.');
+      });
+  };
+
+  const handleParamChange = (key, value) => {
+    setParameters((prev) => ({ ...prev, [key]: value }));
+  };
+
   return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
-      <Paper sx={{ p: 3 }}>
-        <Typography>Welcome to the Chaos Engineering Platform dashboard. Here you can see recent experiments and system status.</Typography>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Paper sx={{ p: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          New Chaos Experiment
+        </Typography>
+
+        <Stack spacing={3}>
+          <FormControl fullWidth>
+            <InputLabel>Environment</InputLabel>
+            <Select
+              value={environment}
+              label="Environment"
+              onChange={(e) => setEnvironment(e.target.value)}
+            >
+              {environments.map((env) => (
+                <MenuItem key={env} value={env}>
+                  {env}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth disabled={loadingExperiments}>
+            <InputLabel>Chaos Framework</InputLabel>
+            <Select
+              value={framework}
+              label="Chaos Framework"
+              onChange={(e) => setFramework(e.target.value)}
+            >
+              {frameworks.map((fw) => (
+                <MenuItem key={fw} value={fw}>
+                  {fw}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {loadingExperiments && <CircularProgress size={24} />}
+
+          {experiments.length > 0 && (
+            <FormControl fullWidth>
+              <InputLabel>Experiment</InputLabel>
+              <Select
+                value={selectedExperiment}
+                label="Experiment"
+                onChange={(e) => setSelectedExperiment(e.target.value)}
+              >
+                {experiments.map((exp) => (
+                  <MenuItem key={exp.name} value={exp.name} title={exp.description}>
+                    {exp.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+
+          {selectedExperiment && (
+            <Box>
+              <Typography variant="h6" gutterBottom>
+                Parameters
+              </Typography>
+              <Stack spacing={2}>
+                {initialParams.map(({ key, label }) => (
+                  <TextField
+                    key={key}
+                    fullWidth
+                    label={label}
+                    value={parameters[key] || ''}
+                    onChange={(e) => handleParamChange(key, e.target.value)}
+                    variant="outlined"
+                  />
+                ))}
+              </Stack>
+            </Box>
+          )}
+
+          {error && <Alert severity="error">{error}</Alert>}
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleRunExperiment}
+            disabled={!environment || !framework || !selectedExperiment || !!experimentStatus}
+          >
+            Run Experiment
+          </Button>
+
+          {experimentStatus && (
+            <Box mt={3}>
+              <Typography variant="h6">Experiment Status:</Typography>
+              <Typography>Status: {experimentStatus}</Typography>
+              {verdict && <Typography>Verdict: {verdict}</Typography>}
+              {resilienceScore !== null && (
+                <Typography>Resilience Score: {resilienceScore.toFixed(2)}</Typography>
+              )}
+            </Box>
+          )}
+        </Stack>
       </Paper>
     </Container>
   );
