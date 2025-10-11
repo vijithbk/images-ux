@@ -3,10 +3,145 @@ USER = {
     "password": "password"
 }
 
+# Expanded and richer experiment definitions across frameworks
 EXPERIMENTS = [
-    {"framework": "LitmusChaos", "name": "Pod Delete", "description": "Delete pod chaos experiment"},
-    {"framework": "LitmusChaos", "name": "Network Delay", "description": "Add network latency"},
-    {"framework": "Chaos Monkey", "name": "Instance Termination", "description": "Terminate cloud instance randomly"},
+    # LitmusChaos experiments
+    {
+        "framework": "LitmusChaos",
+        "name": "Pod Delete",
+        "description": "Deliberately delete pods to test application resilience."
+    },
+    {
+        "framework": "LitmusChaos",
+        "name": "Network Delay",
+        "description": "Inject artificial network latency delays on target pods."
+    },
+    {
+        "framework": "LitmusChaos",
+        "name": "CPU Hog",
+        "description": "Stress CPU usage on target nodes or pods to test performance."
+    },
+    {
+        "framework": "LitmusChaos",
+        "name": "Memory Hog",
+        "description": "Stress memory usage on target nodes or pods to test stability."
+    },
+
+    # Chaos Monkey experiments
+    {
+        "framework": "Chaos Monkey",
+        "name": "Instance Termination",
+        "description": "Randomly terminate cloud instances to test autoscaling and recovery."
+    },
+    {
+        "framework": "Chaos Monkey",
+        "name": "Disk Full",
+        "description": "Simulate disk full conditions on cloud instances."
+    },
+
+    # PowerfulSeal (another chaos framework) experiments
+    {
+        "framework": "PowerfulSeal",
+        "name": "Chaos Kubernetes Pod Kill",
+        "description": "Kill Kubernetes pods unpredictably to simulate failures."
+    },
+    {
+        "framework": "PowerfulSeal",
+        "name": "Node Drain",
+        "description": "Simulate Kubernetes node drain and cordon operations."
+    }
 ]
 
 RUNNING_EXPERIMENTS = {}
+
+# Rich and detailed experiment reports data
+REPORTS = [
+    {
+        "id": "rep1",
+        "experiment": "Pod Delete",
+        "framework": "LitmusChaos",
+        "status": "Completed",
+        "verdict": "Pass",
+        "start_time": "2025-10-01T14:30:00Z",
+        "end_time": "2025-10-01T14:45:00Z",
+        "resilience_score": 92.5,
+        "details": "Pod successfully deleted and recovered without affecting service uptime."
+    },
+    {
+        "id": "rep2",
+        "experiment": "Network Delay",
+        "framework": "LitmusChaos",
+        "status": "Completed",
+        "verdict": "Fail",
+        "start_time": "2025-10-02T10:00:00Z",
+        "end_time": "2025-10-02T10:18:00Z",
+        "resilience_score": 68.0,
+        "details": "Network delays caused significant timeout errors in frontend service."
+    },
+    {
+        "id": "rep3",
+        "experiment": "Instance Termination",
+        "framework": "Chaos Monkey",
+        "status": "Completed",
+        "verdict": "Pass",
+        "start_time": "2025-10-03T09:15:00Z",
+        "end_time": "2025-10-03T09:30:00Z",
+        "resilience_score": 87.7,
+        "details": "Auto-scaling groups replaced terminated instances quickly; no downtime observed."
+    },
+    {
+        "id": "rep4",
+        "experiment": "Pod Delete",
+        "framework": "LitmusChaos",
+        "status": "Completed",
+        "verdict": "Pass",
+        "start_time": "2025-10-04T11:45:00Z",
+        "end_time": "2025-10-04T12:00:00Z",
+        "resilience_score": 95.3,
+        "details": "Pod deletion tested failover successfully in multiple namespaces."
+    },
+    {
+        "id": "rep5",
+        "experiment": "CPU Hog",
+        "framework": "LitmusChaos",
+        "status": "Completed",
+        "verdict": "Pass",
+        "start_time": "2025-10-05T08:10:00Z",
+        "end_time": "2025-10-05T08:40:00Z",
+        "resilience_score": 91.0,
+        "details": "CPU hog experiment revealed minor performance degradations but system remained stable."
+    },
+    {
+        "id": "rep6",
+        "experiment": "Disk Full",
+        "framework": "Chaos Monkey",
+        "status": "Completed",
+        "verdict": "Fail",
+        "start_time": "2025-10-06T13:00:00Z",
+        "end_time": "2025-10-06T13:25:00Z",
+        "resilience_score": 50.2,
+        "details": "Disk full condition caused several pod crashes requiring manual intervention."
+    },
+    {
+        "id": "rep7",
+        "experiment": "Chaos Kubernetes Pod Kill",
+        "framework": "PowerfulSeal",
+        "status": "Completed",
+        "verdict": "Pass",
+        "start_time": "2025-10-07T15:20:00Z",
+        "end_time": "2025-10-07T15:35:00Z",
+        "resilience_score": 89.8,
+        "details": "Random pod kills tested cluster self-healing capabilities effectively."
+    },
+    {
+        "id": "rep8",
+        "experiment": "Node Drain",
+        "framework": "PowerfulSeal",
+        "status": "Completed",
+        "verdict": "Pass",
+        "start_time": "2025-10-08T17:00:00Z",
+        "end_time": "2025-10-08T17:25:00Z",
+        "resilience_score": 93.6,
+        "details": "Node drain simulation validated pod rescheduling and zero downtime."
+    }
+]
