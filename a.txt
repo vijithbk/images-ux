@@ -1,16 +1,40 @@
 import React from 'react';
-import { Container, Typography, Button } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
-export default function NotFound() {
+import Header from './components/Header';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import NewExperiment from './pages/NewExperiment';
+import Reports from './pages/Reports';
+import NotFound from './pages/NotFound';
+import { useAuth } from './context/AuthContext';
+
+function App() {
+  const { user } = useAuth();
+
   return (
-    <Container sx={{ mt: 10, textAlign: 'center' }}>
-      <Typography variant="h3" gutterBottom>
-        404 - Page Not Found
-      </Typography>
-      <Button variant="contained" component={Link} to="/">
-        Go to Dashboard
-      </Button>
-    </Container>
+    <Router>
+      <Header />
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+
+        <Route
+          path="/"
+          element={user ? <Dashboard /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/new-experiment"
+          element={user ? <NewExperiment /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/reports"
+          element={user ? <Reports /> : <Navigate to="/login" />}
+        />
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
   );
 }
+
+export default App;
