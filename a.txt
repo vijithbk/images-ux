@@ -1,17 +1,34 @@
-from pydantic import BaseModel
+import threading
+import random
 from typing import Optional
+from models import ExperimentRequest, ExperimentStatusResponse
+import data
 
-class LoginRequest(BaseModel):
-    username: str
-    password: str
+def authenticate_user(username: str, password: str) -> bool:
+    return (username == data.USER["username"] and password == data.USER["password"])
 
-class ExperimentRequest(BaseModel):
-    environment: str
-    framework: str
-    experiment: str
-    parameters: Optional[dict] = None
+def get_experiments_by_framework(framework: str):
+    return [exp for exp in data.EXPERIMENTS if exp["framework"] == framework]
 
-class ExperimentStatusResponse(BaseModel):
-    status: str
-    verdict: Optional[str] = None
-    resilience_score: Optional[float] = None
+def _complete_experiment(experiment_id: str):
+    data.RUNNING_EXPERIMENTS[experiment_id]["status"] = "Completed"
+    data.RUNNING_EXPERIMENTS[experiment_id]["verdict"] = "Pass"
+    data.RUNNING_EXPERIMENTS[experiment_id]["resilience_score"] = round(random.uniform(80, 100), 2)
+
+def start_experiment(request: ExperimentRequest) -> str:
+    experiment_id = str(random.randint(100000, 999999))
+    data.RUNNING_EXPERIMENTS[experiment_id] = {
+        "status": "Running",
+        "verdict": None,
+        "resilience_score": None,
+    }
+    # Simulate experiment finishing after 15 seconds
+    timer = threading.Timer(15.0, _complete_experiment, args=[experiment_id])
+    timer.start()
+    return experiment_id
+
+def get_experiment_status(experiment_id: str) -> Optional[ExperimentStatusResponse]:
+    exp = data.RUNNING_EXPERIMENTS.get(experiment_id)
+    if not exp:
+        return None
+    return ExperimentStatusResponse(**exp)
