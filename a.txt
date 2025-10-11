@@ -1,36 +1,17 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from models import LoginRequest, ExperimentRequest, ExperimentStatusResponse
-from services import authenticate_user, get_experiments_by_framework, start_experiment, get_experiment_status
+from pydantic import BaseModel
+from typing import Optional
 
-app = FastAPI()
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
-# CORS for frontend connection
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+class ExperimentRequest(BaseModel):
+    environment: str
+    framework: str
+    experiment: str
+    parameters: Optional[dict] = None
 
-@app.post("/api/login")
-def login(request: LoginRequest):
-    if authenticate_user(request.username, request.password):
-        return {"success": True, "message": "Login successful"}
-    raise HTTPException(status_code=401, detail="Invalid credentials")
-
-@app.get("/api/experiments", response_model=list)
-def experiments(framework: str):
-    return get_experiments_by_framework(framework)
-
-@app.post("/api/experiments")
-def run_experiment(request: ExperimentRequest):
-    experiment_id = start_experiment(request)
-    return {"id": experiment_id, "message": "Experiment started"}
-
-@app.get("/api/experiments/{experiment_id}", response_model=ExperimentStatusResponse)
-def experiment_status(experiment_id: str):
-    status = get_experiment_status(experiment_id)
-    if status is None:
-        raise HTTPException(status_code=404, detail="Experiment not found")
-    return status
+class ExperimentStatusResponse(BaseModel):
+    status: str
+    verdict: Optional[str] = None
+    resilience_score: Optional[float] = None
