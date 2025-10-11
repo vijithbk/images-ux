@@ -1,70 +1,77 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Typography, Paper, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, CircularProgress, Alert } from '@mui/material';
-import { fetchReports } from '../services/api';
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from typing import List, Optional
+from uuid import uuid4
+from threading import Timer
+import random
 
-export default function Reports() {
-  const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+from data import USER, EXPERIMENTS, RUNNING_EXPERIMENTS, REPORTS
 
-  useEffect(() => {
-    setLoading(true);
-    fetchReports()
-      .then(data => {
-        setReports(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError('Failed to load reports');
-        setLoading(false);
-      });
-  }, []);
+app = FastAPI()
 
-  if (loading) return <Container sx={{ mt: 4 }}><CircularProgress /></Container>;
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-  if (error) return <Container sx={{ mt: 4 }}><Alert severity="error">{error}</Alert></Container>;
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
-  return (
-    <Container sx={{ mt: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Experiment Reports
-      </Typography>
-      {reports.length === 0 ? (
-        <Typography>No reports found.</Typography>
-      ) : (
-        <TableContainer component={Paper}>
-          <Table aria-label="reports table">
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Experiment</TableCell>
-                <TableCell>Framework</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Verdict</TableCell>
-                <TableCell>Resilience Score</TableCell>
-                <TableCell>Start Time</TableCell>
-                <TableCell>End Time</TableCell>
-                <TableCell>Details</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {reports.map((report) => (
-                <TableRow key={report.id}>
-                  <TableCell>{report.id}</TableCell>
-                  <TableCell>{report.experiment}</TableCell>
-                  <TableCell>{report.framework}</TableCell>
-                  <TableCell>{report.status}</TableCell>
-                  <TableCell>{report.verdict}</TableCell>
-                  <TableCell>{report.resilience_score.toFixed(2)}</TableCell>
-                  <TableCell>{new Date(report.start_time).toLocaleString()}</TableCell>
-                  <TableCell>{new Date(report.end_time).toLocaleString()}</TableCell>
-                  <TableCell>{report.details}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
-    </Container>
-  );
-}
+class ExperimentRequest(BaseModel):
+    environment: str
+    framework: str
+    experiment: str
+    parameters: Optional[dict] = None
+
+class ExperimentStatusResponse(BaseModel):
+    status: str
+    verdict: Optional[str] = None
+    resilience_score: Optional[float] = None
+
+@app.post("/api/login")
+def login(request: LoginRequest):
+    if request.username == USER["username"] and request.password == USER["password"]:
+        return {"success": True, "message": "Login successful"}
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+
+@app.get("/api/experiments", response_model=List[dict])
+def get_experiments(framework: str):
+    filtered = [exp for exp in EXPERIMENTS if exp["framework"] == framework]
+    return filtered
+
+@app.post("/api/experiments")
+def run_experiment(data: ExperimentRequest):
+    if not data.environment or not data.framework or not data.experiment:
+        raise HTTPException(status_code=400, detail="Missing environment, framework or experiment")
+
+    experiment_id = str(uuid4())
+    RUNNING_EXPERIMENTS[experiment_id] = {
+        "status": "Running",
+        "verdict": None,
+        "resilience_score": None
+    }
+
+    def complete_experiment():
+        RUNNING_EXPERIMENTS[experiment_id]["status"] = "Completed"
+        RUNNING_EXPERIMENTS[experiment_id]["verdict"] = "Pass"
+        RUNNING_EXPERIMENTS[experiment_id]["resilience_score"] = round(random.uniform(80.0, 100.0), 2)
+
+    Timer(15.0, complete_experiment).start()
+
+    return {"id": experiment_id, "message": "Experiment started"}
+
+@app.get("/api/experiments/{experiment_id}", response_model=ExperimentStatusResponse)
+def experiment_status(experiment_id: str):
+    experiment = RUNNING_EXPERIMENTS.get(experiment_id)
+    if not experiment:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+
+    return ExperimentStatusResponse(**experiment)
+
+@app.get("/api/reports")
+def get_reports():
+    return REPORTS
