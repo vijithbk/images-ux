@@ -1,32 +1,36 @@
 import React from 'react';
-import { Table } from 'react-bootstrap';
+import { Card, Row, Col } from 'react-bootstrap';
 
-const RecentExperiments = ({ experiments }) => (
+const SystemMetrics = ({ metrics }) => (
   <div>
-    <h4>Recent Experiments</h4>
-    <Table striped bordered hover size="sm">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Target</th>
-          <th>Status</th>
-          <th>Start Time</th>
-          <th>Duration</th>
-        </tr>
-      </thead>
-      <tbody>
-        {experiments.map(exp => (
-          <tr key={exp.id}>
-            <td>{exp.name}</td>
-            <td>{exp.target}</td>
-            <td>{exp.status}</td>
-            <td>{new Date(exp.startTime).toLocaleString()}</td>
-            <td>{exp.duration} sec</td>
-          </tr>
-        ))}
-      </tbody>
-    </Table>
+    <h4>System Health Metrics</h4>
+    <Row>
+      <Col>
+        <Card bg="light" border="info">
+          <Card.Body>
+            <Card.Title>CPU Usage</Card.Title>
+            <Card.Text>{metrics.cpu}%</Card.Text>
+          </Card.Body>
+        </Card>
+      </Col>
+      <Col>
+        <Card bg="light" border="info">
+          <Card.Body>
+            <Card.Title>Memory Usage</Card.Title>
+            <Card.Text>{metrics.memory} MB</Card.Text>
+          </Card.Body>
+        </Card>
+      </Col>
+      <Col>
+        <Card bg="light" border="info">
+          <Card.Body>
+            <Card.Title>Error Rate</Card.Title>
+            <Card.Text>{metrics.errorRate}%</Card.Text>
+          </Card.Body>
+        </Card>
+      </Col>
+    </Row>
   </div>
 );
 
-export default RecentExperiments;
+export default SystemMetrics;
