@@ -1,32 +1,28 @@
 import React from 'react';
-import { Table } from 'react-bootstrap';
+import { PieChart, Pie, Cell, Legend, Tooltip } from 'recharts';
 
-const RecentExperiments = ({ experiments }) => (
+const COLORS = ['#28a745', '#dc3545'];
+
+const ExperimentSummary = ({ data }) => (
   <div>
-    <h4>Recent Experiments</h4>
-    <Table striped bordered hover size="sm">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Target</th>
-          <th>Status</th>
-          <th>Start Time</th>
-          <th>Duration</th>
-        </tr>
-      </thead>
-      <tbody>
-        {experiments.map(exp => (
-          <tr key={exp.id}>
-            <td>{exp.name}</td>
-            <td>{exp.target}</td>
-            <td>{exp.status}</td>
-            <td>{new Date(exp.startTime).toLocaleString()}</td>
-            <td>{exp.duration} sec</td>
-          </tr>
+    <h4>Experiment Summary</h4>
+    <PieChart width={300} height={300}>
+      <Pie
+        data={data}
+        innerRadius={60}
+        outerRadius={90}
+        fill="#8884d8"
+        dataKey="value"
+        label
+      >
+        {data.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
         ))}
-      </tbody>
-    </Table>
+      </Pie>
+      <Legend />
+      <Tooltip />
+    </PieChart>
   </div>
 );
 
-export default RecentExperiments;
+export default ExperimentSummary;
