@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import RecentExperiments from './RecentExperiments';
-import ExperimentSummary from './ExperimentSummary';
-import SystemMetrics from './SystemMetrics';
-import { Container, Row, Col } from 'react-bootstrap';
+import RecentExperiments from '../components/RecentExperiments';
+import ExperimentSummary from '../components/ExperimentSummary';
+import SystemMetrics from '../components/SystemMetrics';
+import { Container, Row, Col, Nav } from 'react-bootstrap';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const [experiments, setExperiments] = useState([]);
@@ -13,27 +14,51 @@ const Dashboard = () => {
     setExperiments([
       { id: 1, name: 'Latency Test', target: 'Service A', status: 'Passed', startTime: Date.now() - 3600000, duration: 120 },
       { id: 2, name: 'Exception Injection', target: 'Service B', status: 'Failed', startTime: Date.now() - 7200000, duration: 180 },
+      { id: 3, name: 'CPU Stress', target: 'Service C', status: 'Passed', startTime: Date.now() - 10800000, duration: 90 },
     ]);
     setSummaryData([
-      { name: 'Passed', value: 1 },
+      { name: 'Passed', value: 2 },
       { name: 'Failed', value: 1 }
     ]);
   }, []);
 
   return (
-    <Container>
-      <h2>Chaos Engineering Dashboard</h2>
-      <Row>
-        <Col md={6}>
-          <RecentExperiments experiments={experiments} />
+    <Container className="mt-4">
+      <Nav variant="tabs" defaultActiveKey="/">
+        <Nav.Item>
+          <Nav.Link as={Link} to="/">Dashboard</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link as={Link} to="/new-experiment">New Experiment</Nav.Link>
+        </Nav.Item>
+        <Nav.Item>
+          <Nav.Link as={Link} to="/reports">Reports</Nav.Link>
+        </Nav.Item>
+        <Nav.Item className="ms-auto">
+          <Nav.Link as={Link} to="/login" className="text-danger">Logout</Nav.Link>
+        </Nav.Item>
+      </Nav>
+
+      <h2 className="my-4">Chaos Engineering Dashboard</h2>
+
+      <Row className="g-4">
+        <Col md={6} xs={12}>
+          <div className="border rounded p-3 h-100 shadow-sm bg-white">
+            <RecentExperiments experiments={experiments} />
+          </div>
         </Col>
-        <Col md={6}>
-          <ExperimentSummary data={summaryData} />
+        <Col md={6} xs={12}>
+          <div className="border rounded p-3 h-100 shadow-sm bg-white d-flex flex-column align-items-center justify-content-center">
+            <ExperimentSummary data={summaryData} />
+          </div>
         </Col>
       </Row>
-      <Row className="mt-4">
-        <Col>
-          <SystemMetrics metrics={metrics} />
+
+      <Row className="g-4 mt-3">
+        <Col xs={12}>
+          <div className="border rounded p-3 shadow-sm bg-white">
+            <SystemMetrics metrics={metrics} />
+          </div>
         </Col>
       </Row>
     </Container>
