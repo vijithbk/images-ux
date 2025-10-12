@@ -1,77 +1,32 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
-from uuid import uuid4
-from threading import Timer
-import random
+import React from 'react';
+import { Table } from 'react-bootstrap';
 
-from data import USER, EXPERIMENTS, RUNNING_EXPERIMENTS, REPORTS
+const RecentExperiments = ({ experiments }) => (
+  <div>
+    <h4>Recent Experiments</h4>
+    <Table striped bordered hover size="sm">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Target</th>
+          <th>Status</th>
+          <th>Start Time</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        {experiments.map(exp => (
+          <tr key={exp.id}>
+            <td>{exp.name}</td>
+            <td>{exp.target}</td>
+            <td>{exp.status}</td>
+            <td>{new Date(exp.startTime).toLocaleString()}</td>
+            <td>{exp.duration} sec</td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
+  </div>
+);
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-class ExperimentRequest(BaseModel):
-    environment: str
-    framework: str
-    experiment: str
-    parameters: Optional[dict] = None
-
-class ExperimentStatusResponse(BaseModel):
-    status: str
-    verdict: Optional[str] = None
-    resilience_score: Optional[float] = None
-
-@app.post("/api/login")
-def login(request: LoginRequest):
-    if request.username == USER["username"] and request.password == USER["password"]:
-        return {"success": True, "message": "Login successful"}
-    raise HTTPException(status_code=401, detail="Invalid credentials")
-
-@app.get("/api/experiments", response_model=List[dict])
-def get_experiments(framework: str):
-    filtered = [exp for exp in EXPERIMENTS if exp["framework"] == framework]
-    return filtered
-
-@app.post("/api/experiments")
-def run_experiment(data: ExperimentRequest):
-    if not data.environment or not data.framework or not data.experiment:
-        raise HTTPException(status_code=400, detail="Missing environment, framework or experiment")
-
-    experiment_id = str(uuid4())
-    RUNNING_EXPERIMENTS[experiment_id] = {
-        "status": "Running",
-        "verdict": None,
-        "resilience_score": None
-    }
-
-    def complete_experiment():
-        RUNNING_EXPERIMENTS[experiment_id]["status"] = "Completed"
-        RUNNING_EXPERIMENTS[experiment_id]["verdict"] = "Pass"
-        RUNNING_EXPERIMENTS[experiment_id]["resilience_score"] = round(random.uniform(80.0, 100.0), 2)
-
-    Timer(15.0, complete_experiment).start()
-
-    return {"id": experiment_id, "message": "Experiment started"}
-
-@app.get("/api/experiments/{experiment_id}", response_model=ExperimentStatusResponse)
-def experiment_status(experiment_id: str):
-    experiment = RUNNING_EXPERIMENTS.get(experiment_id)
-    if not experiment:
-        raise HTTPException(status_code=404, detail="Experiment not found")
-
-    return ExperimentStatusResponse(**experiment)
-
-@app.get("/api/reports")
-def get_reports():
-    return REPORTS
+export default RecentExperiments;
