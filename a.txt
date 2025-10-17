@@ -1,5 +1,1 @@
-Modern applications are updated frequently. Each new update can unknowingly weaken stability or recovery behavior even if individual tests pass.
-
-Traditional testing checks whether features work, but not how the system behaves under stress or during partial failures. As a result, hidden dependencies or bottlenecks often appear only after users are affected.
-
-Systems are often tested in ideal conditions, but real-world environments are unpredictable — components can fail, networks can slow down, or configurations may break without warning.
+The platform enables users to specify the application type, framework, experiment, and related parameters, which are then sent to Tachyon. Tachyon generates a configuration file that can be consumed by the orchestration service to execute the experiment.
