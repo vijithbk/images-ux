@@ -1,51 +1,5 @@
-chaos engineering / fault injection frameworks and tools—open source and commercial
+Modern applications are updated frequently. Each new update can unknowingly weaken stability or recovery behavior even if individual tests pass.
 
-Major Chaos Frameworks & Tools
-Name	Open / Commercial	Target / Environment	Strengths / Use Cases	Notes / Considerations
-LitmusChaos	Open source (CNCF)	Kubernetes / cloud-native	Experiment orchestration using CRDs, probes, ChaosHub, integrated with Prometheus / Grafana 
-LitmusChaos
-	Good fit if you want declarative chaos and Kubernetes-native workflows
-Chaos Mesh	Open source	Kubernetes	Rich fault types (pod, network, I/O, node-level), Kubernetes custom resources 
-Chaos Mesh
-	Very common in cloud-native stacks
-Chaos Toolkit	Open source	Generic / hybrid	“Chaos as code” approach; experiments as JSON/YAML; highly extensible 
-Chaos Toolkit
-	Good for integrations, multi-platform targeting
-Chaos Monkey	Open source	VM / instance-level (cloud)	Randomly terminates instances to test resilience 
-Netflix Open Source Software
-+2
-Gremlin
-+2
-	Originally from Netflix; simple but limited scope
-Pumba	Open source	Docker / container networking	Network emulation, fault injection in containers 
-Container Solutions Blog
-+1
-	Useful for lower-level network faults in container contexts
-ChaosBlade	Open source (Alibaba)	Hosts / containers / Kubernetes	CPU, memory, disk, network faults injection 
-Steadybit
-	CLI-first, lightweight faults
-ToxiProxy	Open source	Network / proxy-level	Latency, packet loss, bandwidth shaping capabilities 
-Steadybit
-	Works well as a supporting tool (especially for microservice networking)
-Gremlin	Commercial	Multi-environment (cloud, containers, VMs)	Feature-rich UI, safety controls, broad fault library 
-Gremlin
-+2
-Steadybit
-+2
-	Good option for enterprises wanting turnkey chaos
-AWS Fault Injection Simulator (FIS)	Commercial	AWS cloud	Native AWS resource fault injection, IAM integration 
-Gremlin
-+2
-Speedscale
-+2
-	Great if your infra is mostly on AWS
-Azure Chaos Studio	Commercial / Azure-managed	Azure cloud	Fault injection for Azure resources, service-level faults 
-Gremlin
-+2
-Speedscale
-+2
-	Best when using Microsoft / Azure ecosystem
-Steadybit	Commercial	Hybrid / cloud-native	Drag-and-drop experiment builder, reliability policies 
-Steadybit
-	More accessible for organizations wanting built-in tooling
+Traditional testing checks whether features work, but not how the system behaves under stress or during partial failures. As a result, hidden dependencies or bottlenecks often appear only after users are affected.
 
+Systems are often tested in ideal conditions, but real-world environments are unpredictable — components can fail, networks can slow down, or configurations may break without warning.
